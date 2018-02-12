@@ -13,7 +13,13 @@ OptionParser.new do |opts|
 	opts.version = '0.1.0'
 	opts.banner += '[commands] [...arguments]'
 	opts.on('-S','--select','enable selected mode'){options.select = true}
-	opts.on('-i','--integer integerval','set integer number') {|opt| options.integer = opt.to_i}
+	opts.on('-i','--integer integerval','set integer number') {|opt| 
+		if  opt.to_i? then
+	 		options.integer = opt.to_i
+	 	else
+	 		
+	 	end
+	 	}
 	opts.on('-s','--string stringval','set string value') {|opt| options.string = opt}
 	opts.on('-f','--float floatval','set float value') {|opt| options.float = opt.to_f}
 	opts.on('-a','--append appendval','set append value') {|opt| 
