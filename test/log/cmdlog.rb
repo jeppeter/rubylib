@@ -1,5 +1,5 @@
 require 'optparse'
-require 'logging'
+require 'Logger'
 
 options = {}
 options[:verbose] = 0
@@ -24,16 +24,41 @@ OptionParser.new do |parser|
 	end
 end.parse!
 
+class CompoundLogger
+	def initialiazer(level)
+		@loggers = []
+		@level  = level
+	end
+
+	def add_file_append(name)
+		log = Logger.new(name, File::WRONLY | File::APPEND)
+		@loggers << log
+	end
+
+	def add_file(name)
+		log = Logger.new(name, File::WRONLY |  File::CREAT)
+		@loggers << log
+	end
+
+	def console_log()
+		log = Logger.new(STDERR)
+		@loggers << log
+	end
+
+	def warn(msg)
+	end
+end
+
 def set_log(opts)
 	if opts[:log_console] then
-		Logging.appenders.stderr('stderr')
+		
 	end
 end
 
 
 set_log(options)
 
-Logging.debug "hello world"
-Logging.warn "hello world"
-Logging.error "hello world"
-Logging.trace "hello world"
+Logger.debug "hello world"
+Logger.warn "hello world"
+Logger.error "hello world"
+Logger.trace "hello world"
