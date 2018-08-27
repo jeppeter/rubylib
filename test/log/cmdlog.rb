@@ -25,18 +25,22 @@ OptionParser.new do |parser|
 end.parse!
 
 class CompoundLogger
-	def initialiazer(level)
+	attr_accessor :loggers,:level,:name
+	def initialize(level=Logger::ERROR,name=nil)
 		@loggers = []
-		@level  = level
+		@level = level
+		@name = name
 	end
 
-	def add_file_append(name)
-		log = Logger.new(name, File::WRONLY | File::APPEND)
+	def add_file_append(outfile)
+		f = File.open(outfile, File::WRONLY | File::APPEND | File::CREAT)
+		log = Logger::new(f)
 		@loggers << log
 	end
 
-	def add_file(name)
-		log = Logger.new(name, File::WRONLY |  File::CREAT)
+	def add_file(outfile)
+		f = File.open(outfile, File::WRONLY |  File::CREAT)
+		log = Logger::new(f)
 		@loggers << log
 	end
 
@@ -46,19 +50,80 @@ class CompoundLogger
 	end
 
 	def warn(msg)
+		sarr = caller[0].split(':')
+		@loggers.each{|x|
+			x.warn('['+sarr[0]+':'+ sarr[1]+'] ' + msg)
+		}
+	end
+
+	def info(msg)
+		sarr = caller[0].split(':')
+		@loggers.each{|x|
+			x.info('['+sarr[0]+':'+ sarr[1]+'] ' + msg)
+		}
+	end
+
+	def error(msg)
+		sarr = caller[0].split(':')
+		@loggers.each{|x|
+			x.error('['+sarr[0]+':'+ sarr[1]+'] ' + msg)
+
+		}
+	end
+
+	def debug(msg)
+		sarr = caller[0].split(':')
+		@loggers.each{|x|
+			x.debug('['+sarr[0]+':'+ sarr[1]+'] ' + msg)
+		}
+	end
+
+	def fatal(msg)
+		sarr = caller[0].split(':')
+		@loggers.each{|x|
+			x.fatal('['+sarr[0]+':'+ sarr[1]+'] ' + msg)
+		}
 	end
 end
+
+
 
 def set_log(opts)
-	if opts[:log_console] then
-		
+	log = nil
+	level = Logger::ERROR
+	if opts[:verbose] >= 3 then
+		level = Logger::DEBUG
+	elsif  opts[:verbose] >= 2 then
+		level = Logger::INFO
+	elsif  opts[:verbose] >= 1 then
+		level = Logger::WARN
 	end
+			
+
+	if log.nil? then
+		log = CompoundLogger.new(level)
+	end
+
+	if opts[:log_console] then
+		log.console_log()
+	end
+
+	opts[:log_appends].each { |x|
+		log.add_file_append(x)
+	}
+
+	opts[:log_files].each { |x|
+		log.add_file(x)
+	}
+
+	return log
 end
 
 
-set_log(options)
+log = set_log(options)
 
-Logger.debug "hello world"
-Logger.warn "hello world"
-Logger.error "hello world"
-Logger.trace "hello world"
+log.debug "hello world"
+log.warn "hello world"
+log.error "hello world"
+log.info "hello world"
+log.fatal "hello world"
