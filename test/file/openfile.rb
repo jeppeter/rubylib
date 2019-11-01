@@ -2,7 +2,7 @@
 
 def read_file(fname)
 	f = File.open(fname, "r")
-	data = f.read
+	data = f.readlines();
 	f.close
 	return data
 end
@@ -13,5 +13,7 @@ end
 
 for c in ARGV do
 	p "read #{c}"
-	p read_file(c)
+	read_file(c).each{ |l|
+		print "#{l}";
+	}
 end
