@@ -12,6 +12,7 @@ class _logging_inner
 end
 
 class logging
-	class logging.base
+	@@logger
+	class logging.baseconfig
 
 end
