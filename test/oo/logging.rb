@@ -2,8 +2,14 @@
 
 class _logging_inner
 	@loggers
-	attr_reader :loggers
 	def initiliaze()
+	end
+
+	def set_format(logfmt)
+
+	end
+
+	def set_level(loglvl)
 	end
 
 	def fatal()
@@ -13,6 +19,8 @@ end
 
 class logging
 	@@logger
-	class logging.baseconfig
+	def logging.baseconfig(loglvl,logfmt)
+	end
 
+	def logging.error()
 end
