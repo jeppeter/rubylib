@@ -46,18 +46,15 @@ class LoggingInner
 	@fmt 
 	def initialize()
 		@level = Logger::ERROR
-		#@fmt = "\#{datetime}: \#{msg}\n"
+		@fmt = proc do |serv,datetime,prog,msg|"#{serv} #{datetime}: #{msg}\n" end
 		@loggers = []
 	end
 
 	def set_format(logfmt)
 		@fmt = logfmt
 		@loggers.each { |log|
-			log.formatter = proc do |serv,datetime,prog,msg|
-				@fmt
-			end
+			log.formatter = @fmt
 		}
-		@loggers = []
 	end
 
 	def set_level(loglvl)
@@ -126,9 +123,7 @@ class LoggingInner
 
 	def __append_logger(log)
 		log.level = @level
-		log.formatter = proc do |serv,datetime,prog,msg|
-			"#{serv} #{msg}\n"
-		end
+		log.formatter = @fmt
 		@loggers.push(log)
 	end
 
@@ -145,7 +140,7 @@ class LoggingInner
 		if isappend then
 			log = Logger.new(fname,File::WRONLY| File::APPEND)
 		else
-			log = Logger.new(fname)
+			log = Logger.new(fname,File::WRONLY | File::TRUNC)
 		end
 		self.__append_logger(log)
 	end
@@ -207,7 +202,7 @@ class Logging
 	end
 end
 
-Logging.baseconfig(50,"\#{serv} \#{msg}\n")
+Logging.baseconfig(50, proc do |serv,datetime,prog,msg| "#{datetime} #{msg}\n" end)
 Logging.add_stdout(false)
 Logging.add_file('new.log', false)
 Logging.add_file('app.log', true)
@@ -219,11 +214,9 @@ Logging.info "call first"
 Logging.debug "call first"
 
 
-Logging.baseconfig(30,"\#{serv} \#{prog} \#{msg}\n")
-puts "for second============"
+Logging.baseconfig(20,proc do |serv,datetime,prog,msg| "#{serv} #{datetime} #{msg}\n" end)
 Logging.fatal "call second"
 Logging.error "call second"
 Logging.warn "call second"
 Logging.info "call second"
 Logging.debug "call second"
-puts "for second+++++++++++"
