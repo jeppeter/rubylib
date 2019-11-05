@@ -51,7 +51,8 @@ class LoggingInner
 	end
 
 	def set_format(logfmt)
-		@fmt = logfmt
+		s = sprintf("proc do |serv,datetime,prog,msg| \"%s\" end", logfmt)
+		@fmt = eval(s)
 		@loggers.each { |log|
 			log.formatter = @fmt
 		}
@@ -202,7 +203,7 @@ class Logging
 	end
 end
 
-Logging.baseconfig(50, proc do |serv,datetime,prog,msg| "#{datetime} #{msg}\n" end)
+Logging.baseconfig(50, "\#{datetime} \#{msg}\n")
 Logging.add_stdout(false)
 Logging.add_file('new.log', false)
 Logging.add_file('app.log', true)
@@ -214,7 +215,7 @@ Logging.info "call first"
 Logging.debug "call first"
 
 
-Logging.baseconfig(20,proc do |serv,datetime,prog,msg| "#{serv} #{datetime} #{msg}\n" end)
+Logging.baseconfig(20,"\#{serv} \#{datetime} \#{msg}\n")
 Logging.fatal "call second"
 Logging.error "call second"
 Logging.warn "call second"
