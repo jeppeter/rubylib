@@ -56,6 +56,7 @@ class LoggingInner
 		@loggers.each { |log|
 			log.formatter = @fmt
 		}
+		return self
 	end
 
 	def set_level(loglvl)
@@ -75,13 +76,14 @@ class LoggingInner
 		@loggers.each{ |log|
 			log.level = @level
 		}
+		return self
 	end
 
 	def __format_msg(stacks,*msgs)
 		stk = 6
 		s = ""
 		if msgs.length > 0 && stacks.is_a?(Integer) then
-			stk = stacks
+			stk = (stacks + 1)
 			s = sprintf(*msgs)
 		else
 			s = sprintf(stacks,*msgs)
@@ -90,17 +92,23 @@ class LoggingInner
 		return sprintf("[%s:%d] #{s}", tr.filename,tr.linenum)
 	end
 
+	def baseconfig(loglvl,logfmt)
+		return self.set_level(loglvl).set_format(logfmt)
+	end
+
 
 	def fatal(*msgs)
 		@loggers.each{ |log|
 			log.fatal self.__format_msg(*msgs)
 		}
+		return self
 	end
 
 	def error(*msgs)
 		@loggers.each{ |log|
 			log.error self.__format_msg(*msgs)
 		}
+		return self
 	end
 
 
@@ -108,18 +116,21 @@ class LoggingInner
 		@loggers.each{ |log|
 			log.warn self.__format_msg(*msgs)
 		}
+		return self
 	end
 
 	def info(*msgs)
 		@loggers.each{ |log|
 			log.info self.__format_msg(*msgs)
 		}
+		return self
 	end
 
 	def debug(*msgs)
 		@loggers.each{ |log|
 			log.debug self.__format_msg(*msgs)
 		}
+		return self
 	end
 
 	def __append_logger(log)
@@ -135,6 +146,7 @@ class LoggingInner
 			log = Logger.new(STDOUT)
 		end
 		self.__append_logger(log)
+		return self
 	end
 
 	def add_file(fname,isappend)
@@ -145,62 +157,58 @@ class LoggingInner
 			log = Logger.new(fout)
 		end
 		self.__append_logger(log)
+		return self
 	end
 end
 
 class Logging
-	@@logger = nil
-	def Logging.__check_create()
-		if @@logger == nil then
-			@@logger = LoggingInner.new()
+	@@logger = Hash.new(nil)
+	def Logging.__check_create(name=nil)
+		if @@logger[name] == nil then
+			@@logger[name] = LoggingInner.new()
 		end
+		return @@logger[name]
+	end
+
+	def Logging.create(name=nil)
+		return Logging.__check_create(name)
 	end
 
 	def Logging.add_stdout(iserr)
-		Logging.__check_create()
-		@@logger.add_stdout(iserr)
+		Logging.__check_create().add_stdout(iserr)
 	end
 
 	def Logging.set_level(loglvl)
-		Logging.__check_create()
-		@@logger.set_level(loglvl)
+		Logging.__check_create().set_level(loglvl)
 	end
 
 	def Logging.add_file(fname,isappend)
-		Logging.__check_create()
-		@@logger.add_file(fname,isappend)
+		Logging.__check_create().add_file(fname,isappend)
 	end
 
 
 	def Logging.baseconfig(loglvl,logfmt)
-		Logging.__check_create()
-		@@logger.set_level(loglvl)
-		@@logger.set_format(logfmt)
+		Logging.__check_create().baseconfig(loglvl,logfmt)
 	end
 
 	def Logging.fatal(*msgs)
-		Logging.__check_create()
-		@@logger.fatal(*msgs)
+		Logging.__check_create().fatal(*msgs)
 	end
 
 	def Logging.error(*msgs)
-		Logging.__check_create()
-		@@logger.error(*msgs)
+		Logging.__check_create().error(*msgs)
 	end
 
 	def Logging.warn(*msgs)
-		Logging.__check_create()
-		@@logger.warn(*msgs)
+		Logging.__check_create().warn(*msgs)
 	end
 
 	def Logging.info(*msgs)
-		Logging.__check_create()
-		@@logger.info(*msgs)
+		Logging.__check_create().info(*msgs)
 	end
 
 	def Logging.debug(*msgs)
-		Logging.__check_create()
-		@@logger.debug(*msgs)
+		Logging.__check_create().debug(*msgs)
 	end
 end
 
@@ -222,3 +230,16 @@ Logging.error "call second"
 Logging.warn "call second"
 Logging.info "call second"
 Logging.debug "call second"
+
+idx = 0
+while idx < ARGV.length 
+	l = Logging.create(ARGV[idx])
+	l.baseconfig(50,"\#{datetime} \#{msg}\n")
+	l.add_stdout(true)
+	l.fatal(4,"call %s first", ARGV[idx])
+	l.error(4,"call %s first", ARGV[idx])
+	l.warn(4,"call %s first", ARGV[idx])
+	l.info(4,"call %s first", ARGV[idx])
+	l.debug(4,"call %s first", ARGV[idx])
+	idx += 1
+end
