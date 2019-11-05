@@ -96,6 +96,10 @@ class LoggingInner
 		return self.set_level(loglvl).set_format(logfmt)
 	end
 
+	def __is_has(name)
+		return @loggers[name]
+	end
+
 
 	def fatal(*msgs)
 		@loggers.each{ |key,log|
@@ -144,23 +148,32 @@ class LoggingInner
 	def add_stdout(iserr)
 		if iserr then
 			name = "STDERR"
-			log = Logger.new(STDERR)
+			if self.__is_has(name) == nil then
+				self.__append_logger(name,Logger.new(STDERR))
+			end
 		else
 			name = "STDOUT"
-			log = Logger.new(STDOUT)
+			if self.__is_has(name) == nil then
+				self.__append_logger(name, Logger.new(STDOUT))
+			end
 		end
-		self.__append_logger(name,log)
 		return self
 	end
 
 	def add_file(fname,isappend)
 		if isappend then
 			name = File.expand_path(fname)
-			log = Logger.new(fname,File::WRONLY| File::APPEND)
+			if self.__is_has(name) == nil then
+				log = Logger.new(fname,File::WRONLY| File::APPEND)
+				self.__append_logger(name,log)
+			end
 		else
 			name = File.expand_path(fname)
-			fout = File.new(fname,'w')
-			log = Logger.new(fout)
+			if self.__is_has(name) == nil then
+				fout = File.new(fname,'w')
+				log = Logger.new(fout)
+				self.__append_logger(name,log)
+			end
 		end
 		self.__append_logger(name,log)
 		return self
@@ -229,6 +242,9 @@ Logging.warn "call first"
 Logging.info "call first"
 Logging.debug "call first"
 
+Logging.add_stdout(false)
+Logging.add_file('new.log', false)
+Logging.add_file('app.log', true)
 
 Logging.baseconfig(20,"\#{serv} \#{datetime} \#{msg}\n")
 Logging.fatal "call second"
