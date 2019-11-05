@@ -141,7 +141,8 @@ class LoggingInner
 		if isappend then
 			log = Logger.new(fname,File::WRONLY| File::APPEND)
 		else
-			log = Logger.new(fname,File::WRONLY | File::TRUNC)
+			fout = File.new(fname,'w')
+			log = Logger.new(fout)
 		end
 		self.__append_logger(log)
 	end
