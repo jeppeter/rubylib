@@ -47,13 +47,13 @@ class LoggingInner
 	def initialize()
 		@level = Logger::ERROR
 		@fmt = proc do |serv,datetime,prog,msg|"#{serv} #{datetime}: #{msg}\n" end
-		@loggers = []
+		@loggers = Hash.new(nil)
 	end
 
 	def set_format(logfmt)
 		s = sprintf("proc do |serv,datetime,prog,msg| \"%s\" end", logfmt)
 		@fmt = eval(s)
-		@loggers.each { |log|
+		@loggers.each { |key,log|
 			log.formatter = @fmt
 		}
 		return self
@@ -73,7 +73,7 @@ class LoggingInner
 			setlvl = Logger::DEBUG
 		end
 		@level = setlvl
-		@loggers.each{ |log|
+		@loggers.each{ |key,log|
 			log.level = @level
 		}
 		return self
@@ -98,14 +98,14 @@ class LoggingInner
 
 
 	def fatal(*msgs)
-		@loggers.each{ |log|
+		@loggers.each{ |key,log|
 			log.fatal self.__format_msg(*msgs)
 		}
 		return self
 	end
 
 	def error(*msgs)
-		@loggers.each{ |log|
+		@loggers.each{ |key,log|
 			log.error self.__format_msg(*msgs)
 		}
 		return self
@@ -113,50 +113,56 @@ class LoggingInner
 
 
 	def warn(*msgs)
-		@loggers.each{ |log|
+		@loggers.each{ |key,log|
 			log.warn self.__format_msg(*msgs)
 		}
 		return self
 	end
 
 	def info(*msgs)
-		@loggers.each{ |log|
+		@loggers.each{ |key,log|
 			log.info self.__format_msg(*msgs)
 		}
 		return self
 	end
 
 	def debug(*msgs)
-		@loggers.each{ |log|
+		@loggers.each{ |key,log|
 			log.debug self.__format_msg(*msgs)
 		}
 		return self
 	end
 
-	def __append_logger(log)
-		log.level = @level
-		log.formatter = @fmt
-		@loggers.push(log)
+	def __append_logger(name,log)
+		if @loggers[name] == nil then
+			log.level = @level
+			log.formatter = @fmt
+			@loggers[name]= log
+		end
 	end
 
 	def add_stdout(iserr)
 		if iserr then
+			name = "STDERR"
 			log = Logger.new(STDERR)
 		else
+			name = "STDOUT"
 			log = Logger.new(STDOUT)
 		end
-		self.__append_logger(log)
+		self.__append_logger(name,log)
 		return self
 	end
 
 	def add_file(fname,isappend)
 		if isappend then
+			name = File.expand_path(fname)
 			log = Logger.new(fname,File::WRONLY| File::APPEND)
 		else
+			name = File.expand_path(fname)
 			fout = File.new(fname,'w')
 			log = Logger.new(fout)
 		end
-		self.__append_logger(log)
+		self.__append_logger(name,log)
 		return self
 	end
 end
