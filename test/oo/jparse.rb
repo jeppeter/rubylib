@@ -1,18 +1,42 @@
 require 'json'
 
 def json_check_key(jsonstr,key)
+	jhash = JSON.parse(jsonstr)
+	if jhash.key?(key) then
+		puts "[#{jsonstr}] has key[#{key}]"
+	else
+		puts "[#{jsonstr}] not has key[#{key}]"
+	end
+	return
 end
 
 def json_add_key(jsonstr,key,val)
+	jhash = JSON.parse(jsonstr)
+	jhash[key] = JSON.parse(val)
+	s = JSON.generate(jhash)
+	puts "[#{jsonstr}] add [#{key}] [#{val}] [#{s}]"
+	return
 end
 
-def json_del_key(json,key)
+def json_del_key(jsonstr,key)
+	jhash = JSON.parse(jsonstr)
+	if jhash.key?(key) then
+		jhash.delete(key)
+		s = JSON.generate(jhash)
+		puts "[#{jsonstr}] del [#{key}] [#{s}]"
+	else
+		puts "[#{jsonstr}] not hash [#{key}]"
+	end
 end
 
 def usage(ec,fmtstr)
 	fout = $stderr
 	if ec == 0 then
 		fout = $stdout
+	end
+
+	if fmtstr.length > 0 then
+		fout.puts "#{fmtstr}"
 	end
 
 	fout.puts "jparse [SUBCOMMAND]";
@@ -40,6 +64,8 @@ if ARGV.length > 0 then
 			usage(3,"del need 3 args")
 		end
 		json_del_key(ARGV[1],ARGV[2])
+	elsif ARGV[0] == "-h" || ARGV[0] == "--help" then
+		usage(0,"")
 	else
 		$stderr.puts "#{ARGV[0]} not supported";
 		exit(4);
