@@ -41,9 +41,6 @@ require 'logger'
 
 
 	class LoggingInner
-		@loggers
-		@level
-		@fmt 
 		def initialize()
 			@level = Logger::ERROR
 			@fmt = proc do |serv,datetime,prog,msg|"#{serv} #{datetime}: #{msg}\n" end

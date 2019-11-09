@@ -39,10 +39,7 @@
 	end
 
 class BaseException < Exception
-	@tr
-	@msg
 	attr_reader :tr,:msg
-
 	def initialize(msg)
 		@tr = TraceBack.new(2)
 		@msg = msg
